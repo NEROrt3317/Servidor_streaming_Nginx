@@ -18,17 +18,16 @@ sudo dnf install -y epel-release
 sudo dnf install -y git gcc gcc-c++ make zlib-devel pcre-devel openssl-devel 
 ```
 NOTA: FFMPEG NO ESTA DISPONIBLE EN LOS REPOSITORIOS ORIGINALES DE ROCKY LINUX
-2.1 INSTALACION DE FFMPEG
-## Habilitar los repositorios de EPEL y RPM Fusion
-### Habilitar EPEL (Extra Packages for Enterprise Linux):
+2.1 INSTALACION DE FFMPEG desde un binario precompilado
+### Descargar y extraer 
+
 ```
-sudo dnf install -y https://mirrors.rpmfusion.org/free/el/rpmfusion-free-release-8.noarch.rpm
-sudo dnf install -y https://mirrors.rpmfusion.org/nonfree/el/rpmfusion-nonfree-release-8.noarch.rpm
-```
-### Instalar ffmpeg
-Con los repositorios adicionales habilitados, puedes instalar ffmpeg directamente:
-```
-sudo dnf install -y ffmpeg ffmpeg-devel
+cd /usr/local/bin
+sudo curl -O https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
+sudo tar -xvf ffmpeg-release-amd64-static.tar.xz
+sudo mv ffmpeg-*-amd64-static/ffmpeg /usr/local/bin/
+sudo mv ffmpeg-*-amd64-static/ffprobe /usr/local/bin/
+
 ```
 ###   Verificar la instalación
 Para confirmar que ffmpeg se instaló correctamente, ejecuta:
@@ -112,12 +111,65 @@ El bloque HTTP configura el acceso a la transmisión desde un navegador a travé
 ```
 sudo mkdir -p /var/www/live
 ```
-5. Iniciar NGINX
+5. Certificaciones de NGINX:
+5.1 Crear el directorio necesario
+Primero, crea el directorio donde se guardarán el certificado y la clave privada:
+```
+sudo mkdir -p /etc/pki/nginx
+```
+5.2. Generar un certificado SSL autogenerado
+Ahora puedes crear un certificado autofirmado que servirá para realizar pruebas de conexión en tu servidor. Este comando generará tanto el certificado como la clave privada:
+```
+sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/pki/nginx/server.key -out /etc/pki/nginx/server.crt
+```
+_NOTA_: Durante la generación, se te pedirá ingresar información sobre el certificado (como el nombre de tu servidor y tu país). Puedes completar los campos o dejarlos vacíos para pruebas locales.
+5.3 Configurar permisos
+Para asegurar que NGINX pueda acceder a estos archivos, establece los permisos adecuados:
+```
+sudo chmod 600 /etc/pki/nginx/server.key
+sudo chmod 644 /etc/pki/nginx/server.crt
+sudo chown root:root /etc/pki/nginx/server.key /etc/pki/nginx/server.crt
+```
+5.4 Verificar la configuración de NGINX
+Abre el archivo de configuración de NGINX para confirmar que las rutas del certificado y la clave sean correctas:
+```
+sudo nano /etc/nginx/nginx.conf
+```
+Asegúrate de que en el bloque de configuración del servidor server (dentro de nginx.conf) esté lo siguiente:
+```
+server {
+    listen 443 ssl;
+    ssl_certificate /etc/pki/nginx/server.crt;
+    ssl_certificate_key /etc/pki/nginx/server.key;
+    ...
+}
+```
+5.5 Probar la configuración
+Ejecuta una prueba de configuración para confirmar que no haya errores en nginx.conf:
+```
+sudo nginx -t
+```
+5.6 Reiniciar NGINX
+Finalmente, reinicia el servicio NGINX para aplicar los cambios:
+```
+sudo systemctl restart nginx
+```
+5.7 Verificar el estado de NGINX
+Asegúrate de que el servicio se esté ejecutando sin problemas:
+```
+sudo systemctl status nginx
+```
+
+
+
+6. Iniciar NGINX
 Después de guardar la configuración, inicia el servidor NGINX.
 ```
 /usr/local/nginx/sbin/nginx
 ```
-6. Transmitir un video local
+
+
+7. Transmitir un video local
 Usa `ffmpeg` para enviar el archivo de video al servidor `RTMP` configurado en `NGINX`.
 ### Ejecutar el streaming:
 ```
@@ -129,7 +181,7 @@ ffmpeg -re -i /ruta/a/tu/video.mp4 -c copy -f flv rtmp://localhost/live/stream
 `-c copy`: mantiene el códec original del video.
 `-f flv`: formato FLV para RTMP.
 `rtmp`://localhost/live/stream: URL de destino de RTMP.
-7. Validar la transmisión desde un cliente (VLC)
+8. Validar la transmisión desde un cliente (VLC)
 - Abre VLC en tu equipo cliente.
 - Ve a Medios > Abrir ubicación de red.
 - Ingresa la URL de transmisión RTMP:
@@ -137,7 +189,7 @@ ffmpeg -re -i /ruta/a/tu/video.mp4 -c copy -f flv rtmp://localhost/live/stream
 rtmp://[IP_DEL_SERVIDOR]/live/stream
 ```
 Nota: Reemplaza `[IP_DEL_SERVIDOR]` con la IP real de tu servidor Rocky Linux.
-8. Alternativa de visualización con `youtube-dl`
+9. Alternativa de visualización con `youtube-dl`
 Para verificar la transmisión en un navegador web puedes usar youtube-dl para generar un enlace reproducible en otras herramientas de video.
 ### Instalar youtube-dl:
 ```
