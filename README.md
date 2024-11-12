@@ -175,6 +175,10 @@ Usa `ffmpeg` para enviar el archivo de video al servidor `RTMP` configurado en `
 ```
 ffmpeg -re -i /ruta/a/tu/video.mp4 -c copy -f flv rtmp://localhost/live/stream
 ```
+### prueba personal de ejecutar:
+```
+ffmpeg -re -i /home/nerort/Video\ de\ Prueba\ Alta\ Calidad\ HDV\ 1080.mp4 -c:v libx264 -f flv rtmp://localhost/live/stream
+```
 #### Explicacion
 `-re`: simula el tiempo real al leer desde el archivo de entrada.
 `-i` /ruta/a/tu/video.mp4: especifica el archivo de video local.
