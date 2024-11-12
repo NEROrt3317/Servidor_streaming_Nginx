@@ -15,7 +15,25 @@ sudo dnf update -y
 Para compilar `NGINX` con el módulo `RTMP`, instala las herramientas de desarrollo y dependencias necesarias.
 ```
 sudo dnf install -y epel-release
-sudo dnf install -y git gcc gcc-c++ make zlib-devel pcre-devel openssl-devel ffmpeg
+sudo dnf install -y git gcc gcc-c++ make zlib-devel pcre-devel openssl-devel 
+```
+NOTA: FFMPEG NO ESTA DISPONIBLE EN LOS REPOSITORIOS ORIGINALES DE ROCKY LINUX
+2.1 INSTALACION DE FFMPEG
+## Habilitar los repositorios de EPEL y RPM Fusion
+### Habilitar EPEL (Extra Packages for Enterprise Linux):
+```
+sudo dnf install -y https://mirrors.rpmfusion.org/free/el/rpmfusion-free-release-8.noarch.rpm
+sudo dnf install -y https://mirrors.rpmfusion.org/nonfree/el/rpmfusion-nonfree-release-8.noarch.rpm
+```
+### Instalar ffmpeg
+Con los repositorios adicionales habilitados, puedes instalar ffmpeg directamente:
+```
+sudo dnf install -y ffmpeg ffmpeg-devel
+```
+###   Verificar la instalación
+Para confirmar que ffmpeg se instaló correctamente, ejecuta:
+```
+ffmpeg -version
 ```
 3. Descargar y compilar `NGINX` con el módulo `RTMP`
 El módulo `RTMP` no está incluido de forma predeterminada en `NGINX`, por lo que necesitas descargarlo y compilarlo con `NGINX`.
